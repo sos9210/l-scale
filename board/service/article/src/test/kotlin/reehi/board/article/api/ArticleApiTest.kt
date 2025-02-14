@@ -1,6 +1,7 @@
 package reehi.board.article.api
 
 import org.springframework.web.client.RestClient
+import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
 import kotlin.test.Test
 
@@ -40,6 +41,19 @@ class ArticleApiTest (
             .uri("/v1/articles/147350121195876352 ")
             .retrieve()
             .toEntity(ArticleResponse::class.java)
+    }
+
+    @Test
+    fun readAllTest() {
+        val response = client.get()
+            .uri("/v1/articles?boardId=1&pageSize=30&page=50000")
+            .retrieve()
+            .body(ArticlePageResponse::class.java)
+
+        println("response = ${response!!.articleCount}")
+        for (article in response.articles) {
+            println("article = ${article.title}")
+        }
     }
 
     fun update(articleId: Long) {

@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reehi.board.article.service.ArticleService
 import reehi.board.article.service.request.ArticleCreateRequest
 import reehi.board.article.service.request.ArticleUpdateRequest
+import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
 
 @RestController
@@ -22,6 +24,13 @@ class ArticleController(
     fun read(@PathVariable articleId: Long): ArticleResponse =
         articleService.read(articleId)
 
+    @GetMapping("/v1/articles")
+    fun readAll(
+        @RequestParam("boardId") boardId: Long,
+        @RequestParam("page") page: Long,
+        @RequestParam("pageSize") pageSize: Long,
+    ): ArticlePageResponse  =
+        articleService.readAll(boardId, page, pageSize)
 
     @PostMapping("/v1/articles")
     fun create(@RequestBody request: ArticleCreateRequest): ArticleResponse =

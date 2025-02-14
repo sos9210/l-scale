@@ -7,6 +7,7 @@ import reehi.board.article.entity.Article
 import reehi.board.article.repository.ArticleRepository
 import reehi.board.article.service.request.ArticleCreateRequest
 import reehi.board.article.service.request.ArticleUpdateRequest
+import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
 
 @Service
@@ -38,5 +39,16 @@ class ArticleService (
     fun delete(articleId: Long) {
         articleRepository.deleteById(articleId)
     }
+
+    fun readAll(boardId: Long, page: Long, pageSize: Long): ArticlePageResponse =
+        ArticlePageResponse.of(
+            articleRepository.findAll(boardId, (page - 1) * pageSize, pageSize)
+                .map { ArticleResponse.from(it)}.toList(),
+            articleRepository.count(
+                boardId,
+                PageLimitCalculator.calculatePageLimit(page,pageSize, 10L)
+            )
+
+        )
 
 }
