@@ -1,5 +1,6 @@
 package reehi.board.article.api
 
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.web.client.RestClient
 import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
@@ -77,6 +78,27 @@ class ArticleApiTest (
 
     }
 
+    @Test
+    fun readAllInfiniteScrollTest() {
+        val articles1 = client.get().uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<List<ArticleResponse>>() {})
+
+        for (article in articles1!!) {
+            println("article1.articleId = ${article.articleId}")
+        }
+        println("")
+        val lastArticleId = articles1.last().articleId
+
+        val articles2 = client.get().uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5&lastArticleId=$lastArticleId")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<List<ArticleResponse>>() {})
+
+        for (article in articles2!!) {
+            println("article2.articleId = ${article.articleId}")
+        }
+
+    }
     companion object {
         class ArticleCreateRequest(
             val title: String,

@@ -27,4 +27,17 @@ class ArticleRepositoryTest (
         log.info("count = $count")
     }
 
+    @Test
+    fun findInfiniteScrollTest() {
+        val articles = articleRepository.findAllInfiniteScroll(1L, 30L)
+        for (article in articles){
+            log.info("article.articleId = ${article.articleId}")
+        };
+        val lastArticleId = articles.last().articleId;
+
+        val articles2 = articleRepository.findAllInfiniteScroll(1L, 30L, lastArticleId)
+        for (article in articles2){
+            log.info("article2.articleId = ${article.articleId}")
+        }
+    }
 }

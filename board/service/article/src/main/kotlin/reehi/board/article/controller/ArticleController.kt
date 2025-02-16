@@ -36,6 +36,12 @@ class ArticleController(
     fun create(@RequestBody request: ArticleCreateRequest): ArticleResponse =
         articleService.create(request)
 
+    @GetMapping("/v1/articles/infinite-scroll")
+    fun readAllInfiniteScroll(
+        @RequestParam("boardId") boardId: Long,
+        @RequestParam("pageSize") pageSize: Long,
+        @RequestParam(value = "lastArticleId", required = false) lastArticleId: Long?,): List<ArticleResponse> =
+        articleService.readAllInfiniteScroll(boardId, pageSize, lastArticleId)
 
     @PutMapping("/v1/articles/{articleId}")
     fun update(@PathVariable articleId: Long,@RequestBody request: ArticleUpdateRequest) =
