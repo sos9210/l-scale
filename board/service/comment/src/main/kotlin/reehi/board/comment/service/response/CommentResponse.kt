@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 class CommentResponse(
     val commentId: Long,
     var content: String,
-    var parentCommentId: Long,
+    var parentCommentId: Long?,
     val articleId: Long,
     val writerId: Long,
     var deleted: Boolean,
