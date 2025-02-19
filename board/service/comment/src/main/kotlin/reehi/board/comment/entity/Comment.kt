@@ -33,7 +33,7 @@ class Comment(
             Comment(
                 commentId = commentId,
                 content = content,
-                parentCommentId = parentCommentId,
+                parentCommentId = parentCommentId ?: commentId,
                 articleId = articleId,
                 writerId = writerId,
                 deleted = false,

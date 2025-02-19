@@ -34,12 +34,14 @@ class CommentService(
     }
 
     private fun findParent(request: CommentCreateRequest): Comment? {
-        return request.parentCommentId?.let { parentId ->
-            commentRepository.findById(parentId)
+        if(request.parentCommentId == null) {
+            return null;
+        }
+        return  commentRepository.findById(request.parentCommentId)
                 .filter(not(Comment::deleted))
                 .filter(Comment::isRoot)
                 .orElseThrow();
-        }
+
     }
 
     fun read(commentId: Long) : CommentResponse {
