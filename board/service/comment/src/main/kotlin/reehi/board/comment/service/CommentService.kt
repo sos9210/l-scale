@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import reehi.board.comment.entity.Comment
 import reehi.board.comment.repository.CommentRepository
 import reehi.board.comment.service.request.CommentCreateRequest
+import reehi.board.comment.service.response.CommentPageResponse
 import reehi.board.comment.service.response.CommentResponse
 import java.util.*
 import java.util.function.Predicate.not
@@ -77,5 +78,20 @@ class CommentService(
                 }
             }
         }
+    }
+
+    fun readAll(articleId: Long, page: Long, pageSize: Long): CommentPageResponse =
+        CommentPageResponse.of(
+            commentRepository.findAll(articleId, (page - 1) * pageSize, pageSize)
+                .map { CommentResponse.from(it) }.toList(),
+            commentRepository.count(articleId, PageLimitCalculator.calculatePageLimit(page, pageSize, 10L))
+        )
+
+    fun readAll (articleId: Long, lastParentCommentId: Long?, lastCommentId: Long?, limit: Long):List<CommentResponse> {
+        val result =
+            if(lastParentCommentId == null|| lastCommentId == null) commentRepository.findAllInfiniteScroll(articleId, limit)
+            else commentRepository.findAllInfiniteScroll(articleId,lastParentCommentId,lastCommentId,limit)
+
+        return result.map { CommentResponse.from(it) }.toList()
     }
 }

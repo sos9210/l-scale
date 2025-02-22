@@ -1,6 +1,8 @@
 package reehi.board.comment.api
 
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.web.client.RestClient
+import reehi.board.comment.service.response.CommentPageResponse
 import reehi.board.comment.service.response.CommentResponse
 import kotlin.test.Test
 
@@ -46,7 +48,54 @@ class CommentApiTest {
             .retrieve().toEntity(CommentResponse::class.java)
 
     }
+    @Test
+    fun readAll() {
+        val response = restClient.get()
+            .uri("/v1/comments?articleId=1&page=50000&pageSize=10")
+            .retrieve()
+            .body(CommentPageResponse::class.java)
 
+        println("response.commentCount ${response?.commentCount}")
+
+        for (comment in response?.comments!!) {
+            if(comment.commentId != comment.parentCommentId) {
+                print("\t")
+            }
+            println("commentId : ${comment.commentId}")
+        }
+    }
+
+    @Test
+    fun readAllInfiniteScroll() {
+        val response1 = restClient.get()
+            .uri("/v1/comments/infinite-scroll?articleId=1&pageSize=5")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<List<CommentResponse>>() {})
+
+        println("firstPage")
+        for (comment in response1!!) {
+            if(comment.commentId != comment.parentCommentId) {
+                print("\t")
+            }
+            println("commentId : ${comment.commentId}")
+        }
+
+        val lastParentCommentId = response1.last().parentCommentId;
+        val lastCommentId = response1.last().commentId;
+
+        val response2 = restClient.get()
+            .uri("/v1/comments/infinite-scroll?articleId=1&pageSize=5&lastParentCommentId=$lastParentCommentId&lastCommentId=$lastCommentId")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<List<CommentResponse>>() {})
+
+        println("secondPage")
+        for (comment in response2!!) {
+            if(comment.commentId != comment.parentCommentId) {
+                print("\t")
+            }
+            println("commentId : ${comment.commentId}")
+        }
+    }
     class CommentCreateRequest (
         val articleId: Long,
         val content: String,
