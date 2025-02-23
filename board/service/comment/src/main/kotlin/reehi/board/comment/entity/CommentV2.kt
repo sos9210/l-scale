@@ -19,4 +19,23 @@ class CommentV2 (
     var deleted: Boolean,
     val createdAt: LocalDateTime,
 ){
+    fun isRoot(): Boolean = commentPath.isRoot()
+    fun delete() {
+        deleted = true
+    }
+
+
+    companion object {
+        fun create(commentId: Long, content: String, articleId: Long, writerId: Long, commentPath: CommentPath): CommentV2 =
+            CommentV2(
+                commentId,
+                content,
+                articleId,
+                writerId,
+                commentPath,
+                false,
+                LocalDateTime.now()
+            )
+
+    }
 }

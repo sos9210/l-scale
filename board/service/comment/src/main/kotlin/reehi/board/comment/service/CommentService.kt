@@ -9,7 +9,6 @@ import reehi.board.comment.repository.CommentRepository
 import reehi.board.comment.service.request.CommentCreateRequest
 import reehi.board.comment.service.response.CommentPageResponse
 import reehi.board.comment.service.response.CommentResponse
-import java.util.*
 import java.util.function.Predicate.not
 
 @Service

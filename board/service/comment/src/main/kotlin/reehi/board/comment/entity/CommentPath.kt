@@ -14,11 +14,11 @@ class CommentPath(
     // 00000 00000 00000(path) -> 00000 00000(parent Path)
     fun parentPath(): String = path.substring(0,path.length - DEPTH_CHUNK_SIZE)
 
-    private fun increase(childrenTopPath: String): String {
+    private fun increase(path: String): String {
         // 00000 00000 -> 00000 00001
         val lastChunk = path.substring(path.length - DEPTH_CHUNK_SIZE)
         if (isChunkOverflowed(lastChunk)){
-            throw IllegalArgumentException("chunk overflowed")
+            throw IllegalStateException("chunk overflowed")
         }
 
         val charsetLength: Int = CHARSET.length
@@ -30,8 +30,8 @@ class CommentPath(
         value += 1
 
         var result: String = ""
-        for (i in 0..DEPTH_CHUNK_SIZE) {
-            result = CHARSET.toCharArray()[value % charsetLength] + result
+        for (i in 0..< DEPTH_CHUNK_SIZE) {
+            result = CHARSET[value % charsetLength] + result
             value /= charsetLength
         }
         // path.substring(0, path.length - DEPTH_CHUNK_SIZE) -> 상위댓글경로정보 00000 00000
@@ -60,12 +60,12 @@ class CommentPath(
         private const val MAX_DEPTH: Int = 5
 
         // MIN_CHUNK = "00000", MAX_CHUNK = "ZZZZZ"
-        val MIN_CHUNK: String = CHARSET.toCharArray(0).toString().repeat(DEPTH_CHUNK_SIZE)
-        val MAX_CHUNK: String = CHARSET.toCharArray(CHARSET.length - 1).toString().repeat(DEPTH_CHUNK_SIZE)
+        val MIN_CHUNK: String = CHARSET[0].toString().repeat(DEPTH_CHUNK_SIZE)
+        val MAX_CHUNK: String = CHARSET[CHARSET.length - 1].toString().repeat(DEPTH_CHUNK_SIZE)
 
         fun create(path: String): CommentPath {
             if(isDepthOverflowed(path)){
-                throw IllegalArgumentException("Depth overflow: $path")
+                throw IllegalStateException("Depth overflow: $path")
             }
             return CommentPath(path)
         }
