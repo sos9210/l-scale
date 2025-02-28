@@ -1,10 +1,14 @@
 package reehi.board.article.api
 
 import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpRequest
+import org.springframework.http.HttpStatusCode
+import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.RestClient
 import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
 import kotlin.test.Test
+
 
 class ArticleApiTest (
 ){
@@ -98,6 +102,28 @@ class ArticleApiTest (
             println("article2.articleId = ${article.articleId}")
         }
 
+    }
+
+    @Test
+    fun countTest() {
+        val response = create(ArticleCreateRequest("hi", "content", 1L, 2L))
+
+        val count1: Long? = client.get()
+            .uri("/v1/articles/boards/{boardId}/count", 2L)
+            .retrieve()
+            .body(Long::class.java)
+        println("count1 = $count1") // 1
+
+        client.delete()
+            .uri("/v1/articles/{articleId}", response?.articleId)
+            .retrieve()
+            .toBodilessEntity();
+
+        val count2: Long? = client.get()
+            .uri("/v1/articles/boards/{boardId}/count", 2L)
+            .retrieve()
+            .body(Long::class.java)
+        println("count2 = $count2") // 0
     }
     companion object {
         class ArticleCreateRequest(

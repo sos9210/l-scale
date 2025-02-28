@@ -6,6 +6,7 @@ import reehi.board.comment.service.response.CommentPageResponse
 import reehi.board.comment.service.response.CommentResponse
 import kotlin.test.Test
 
+
 class CommentApiV2Test {
     val restClient: RestClient = RestClient.create("http://localhost:9001")
 
@@ -109,6 +110,28 @@ class CommentApiV2Test {
         }
     }
 
+    @Test
+    fun countTest() {
+        val commentResponse = create(CommentCreateRequestV2(2L, "my comment1", null, 1L))
+
+        val count1 = restClient.get()
+            .uri("/v2/comments/articles/{articleId}/count", 2L)
+            .retrieve()
+            .body(Long::class.java)
+        println("count1 = $count1") // 1
+
+        restClient.delete()
+            .uri("/v2/comments/{commentId}", commentResponse!!.commentId)
+            .retrieve()
+            .toEntity(CommentResponse::class.java)
+
+        val count2 = restClient.get()
+            .uri("/v2/comments/articles/{articleId}/count", 2L)
+            .retrieve()
+            .body(Long::class.java)
+        println("count2 = $count2") // 0
+
+    }
     class CommentCreateRequestV2 (
         val articleId: Long,
         val content: String,

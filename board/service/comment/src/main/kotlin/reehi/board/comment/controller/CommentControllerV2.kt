@@ -41,4 +41,9 @@ class CommentControllerV2 (
     ): List<CommentResponse> {
         return commentService.readAllInfiniteScroll(articleId, lastPath, pageSize)
     }
+
+    @GetMapping("/v2/comments/articles/{articleId}/count")
+    fun count(@PathVariable("articleId") articleId: Long): Long =
+        commentService.count(articleId)
+
 }

@@ -1,10 +1,13 @@
 package reehi.board.comment.service
 
 import kuke.board.common.snowflake.Snowflake
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reehi.board.comment.entity.ArticleCommentCount
 import reehi.board.comment.entity.CommentPath
 import reehi.board.comment.entity.CommentV2
+import reehi.board.comment.repository.ArticleCommentCountRepository
 import reehi.board.comment.repository.CommentRepositoryV2
 import reehi.board.comment.service.request.CommentCreateRequestV2
 import reehi.board.comment.service.response.CommentPageResponse
@@ -14,7 +17,8 @@ import java.util.function.Predicate.not
 
 @Service
 class CommentServiceV2 (
-    val commentRepository: CommentRepositoryV2
+    val commentRepository: CommentRepositoryV2,
+    val articleCommentCountRepository: ArticleCommentCountRepository
 ){
     val snowflake: Snowflake = Snowflake()
 
@@ -33,6 +37,10 @@ class CommentServiceV2 (
                 )
             )
         )
+        val result = articleCommentCountRepository.increase(request.articleId)
+        if (result == 0) {
+            articleCommentCountRepository.save(ArticleCommentCount.init(request.articleId, 1L))
+        }
 
         return CommentResponse.from(comment)
     }
@@ -61,6 +69,7 @@ class CommentServiceV2 (
                     delete(comment)
                 }
             }
+
     }
 
     private fun hasChildren(comment: CommentV2): Boolean {
@@ -72,6 +81,7 @@ class CommentServiceV2 (
 
     private fun delete(comment: CommentV2) {
         commentRepository.delete(comment)
+        articleCommentCountRepository.decrease(comment.articleId)
         if (!comment.isRoot()) {
             commentRepository.findByPath(comment.commentPath.parentPath())
                         ?.takeIf { !it.deleted }
@@ -96,5 +106,9 @@ class CommentServiceV2 (
 
         return comments.map(CommentResponse::from).toList()
     }
+
+
+    fun count(articleId: Long): Long =
+        articleCommentCountRepository.findByIdOrNull(articleId)?.commentCount ?: 0L
 
 }
