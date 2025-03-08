@@ -33,7 +33,7 @@ class EventTest {
         println("json = $json")
 
         // when
-        val result = Event.fromJson(json!!)!!
+        val result = Event.fromJson<Any>(json!!)!!
 
         // then
         assertEquals(result.eventId,event.eventId)

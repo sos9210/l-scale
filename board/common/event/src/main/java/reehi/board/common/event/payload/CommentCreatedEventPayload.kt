@@ -6,13 +6,13 @@ import java.time.LocalDateTime
 
 
 class CommentCreatedEventPayload(
-    private val commentId: Long,
-    private val content: String,
-    private val path: String,
-    private val articleId: Long,
-    private val writerId: Long,
-    private val deleted: Boolean,
-    private val createdAt: LocalDateTime,
-    private val articleCommentCount: Long,
+     val commentId: Long,
+     val content: String,
+     val path: String,
+     val articleId: Long,
+     val writerId: Long,
+     val deleted: Boolean,
+     val createdAt: LocalDateTime,
+     val articleCommentCount: Long,
 ): EventPayload {
 }

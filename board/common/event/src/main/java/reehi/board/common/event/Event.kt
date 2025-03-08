@@ -28,9 +28,9 @@ class Event<T : EventPayload?> (
 
         )
 
-        fun fromJson(json: String): Event<EventPayload?>? {
+        fun <T> fromJson(json: String): Event<EventPayload>? {
             val eventRaw: EventRaw = DataSerializer.deserialize(json, EventRaw::class.java) ?: return null
-            val event: Event<EventPayload?> =  Event(
+            val event: Event<EventPayload> =  Event(
                 eventId = eventRaw.eventId,
                 type = EventType.from(eventRaw.type),
                 payload = DataSerializer.deserialize(eventRaw.payload, EventType.from(eventRaw.type)!!.payloadClass)

@@ -6,10 +6,10 @@ import java.time.LocalDateTime
 
 
 class ArticleUnlikedEventPayload(
-    private val articleLikeId: Long,
-    private val articleId: Long,
-    private val userId: Long,
-    private val createdAt: LocalDateTime,
-    private val articleLikeCount: Long,
+    val articleLikeId: Long,
+    val articleId: Long,
+    val userId: Long,
+    val createdAt: LocalDateTime,
+    val articleLikeCount: Long,
 ): EventPayload {
 }
