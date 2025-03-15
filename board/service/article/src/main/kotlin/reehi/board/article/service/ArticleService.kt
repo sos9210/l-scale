@@ -12,11 +12,17 @@ import reehi.board.article.service.request.ArticleCreateRequest
 import reehi.board.article.service.request.ArticleUpdateRequest
 import reehi.board.article.service.response.ArticlePageResponse
 import reehi.board.article.service.response.ArticleResponse
+import reehi.board.common.event.EventType
+import reehi.board.common.event.payload.ArticleCreatedEventPayload
+import reehi.board.common.event.payload.ArticleDeletedEventPayload
+import reehi.board.common.event.payload.ArticleUpdatedEventPayload
+import reehi.board.common.outboxmessagerelay.OutboxEventPublisher
 
 @Service
 class ArticleService (
     val articleRepository: ArticleRepository,
     val boardArticleCountRepository: BoardArticleCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher
 ){
     val snowflake: Snowflake = Snowflake();
 
@@ -32,6 +38,21 @@ class ArticleService (
                 BoardArticleCount.init(request.boardId, 1L)
             )
         }
+        outboxEventPublisher.publish(
+            EventType.ARTICLE_CREATED,
+            ArticleCreatedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+                boardArticleCount = count(article.boardId)
+            )
+             ,article.boardId
+        )
+
         return ArticleResponse.from(article)
     }
 
@@ -39,6 +60,21 @@ class ArticleService (
     fun update(articleId: Long, request: ArticleUpdateRequest): ArticleResponse {
         val article = articleRepository.findById(articleId).orElseThrow()
         article.update(request.title,request.content)
+
+        outboxEventPublisher.publish(
+            EventType.ARTICLE_UPDATED,
+            ArticleUpdatedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+            )
+            ,article.boardId
+        )
+
         return ArticleResponse.from(article)
     }
 
@@ -51,6 +87,20 @@ class ArticleService (
         article ?: throw NoSuchElementException("Article not found")
         articleRepository.delete(article)
         boardArticleCountRepository.decrease(article.boardId)
+        outboxEventPublisher.publish(
+            EventType.ARTICLE_DELETED,
+            ArticleDeletedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+                boardArticleCount = count(article.boardId)
+            )
+            ,article.boardId
+        )
     }
 
     fun readAll(boardId: Long, page: Long, pageSize: Long): ArticlePageResponse =

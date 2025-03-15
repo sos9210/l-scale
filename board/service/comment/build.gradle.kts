@@ -8,4 +8,6 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
     implementation(project(":common:snowflake"))
     testImplementation("io.mockk:mockk:1.13.14")
+    implementation(project(":common:outbox-message-relay"))
+    implementation(project(":common:event"))
 }

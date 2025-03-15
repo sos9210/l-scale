@@ -12,13 +12,18 @@ import reehi.board.comment.repository.CommentRepositoryV2
 import reehi.board.comment.service.request.CommentCreateRequestV2
 import reehi.board.comment.service.response.CommentPageResponse
 import reehi.board.comment.service.response.CommentResponse
+import reehi.board.common.event.EventType
+import reehi.board.common.event.payload.CommentCreatedEventPayload
+import reehi.board.common.event.payload.CommentDeletedEventPayload
+import reehi.board.common.outboxmessagerelay.OutboxEventPublisher
 import java.util.function.Predicate.not
 
 
 @Service
 class CommentServiceV2 (
     val commentRepository: CommentRepositoryV2,
-    val articleCommentCountRepository: ArticleCommentCountRepository
+    val articleCommentCountRepository: ArticleCommentCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher
 ){
     val snowflake: Snowflake = Snowflake()
 
@@ -41,6 +46,21 @@ class CommentServiceV2 (
         if (result == 0) {
             articleCommentCountRepository.save(ArticleCommentCount.init(request.articleId, 1L))
         }
+
+        outboxEventPublisher.publish(
+            EventType.COMMENT_CREATED,
+            CommentCreatedEventPayload(
+                commentId = comment.commentId,
+                content = comment.content,
+                articleId = comment.articleId,
+                writerId = comment.writerId,
+                deleted = comment.deleted,
+                createdAt = comment.createdAt,
+                articleCommentCount = count(comment.articleId),
+                path = null
+            ),
+            comment.articleId
+        )
 
         return CommentResponse.from(comment)
     }
@@ -68,6 +88,20 @@ class CommentServiceV2 (
                 } else {
                     delete(comment)
                 }
+                outboxEventPublisher.publish(
+                    EventType.COMMENT_DELETED,
+                    CommentDeletedEventPayload(
+                        commentId = comment.commentId,
+                        content = comment.content,
+                        articleId = comment.articleId,
+                        writerId = comment.writerId,
+                        deleted = comment.deleted,
+                        createdAt = comment.createdAt,
+                        articleCommentCount = count(comment.articleId),
+                        path = null
+                    ),
+                    comment.articleId
+                )
             }
 
     }

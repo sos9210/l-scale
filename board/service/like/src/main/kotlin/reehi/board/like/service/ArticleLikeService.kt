@@ -4,6 +4,10 @@ import kuke.board.common.snowflake.Snowflake
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reehi.board.common.event.EventType
+import reehi.board.common.event.payload.ArticleLikedEventPayload
+import reehi.board.common.event.payload.ArticleUnlikedEventPayload
+import reehi.board.common.outboxmessagerelay.OutboxEventPublisher
 import reehi.board.like.entity.ArticleLike
 import reehi.board.like.entity.ArticleLikeCount
 import reehi.board.like.repository.ArticleLikeCountRepository
@@ -13,7 +17,8 @@ import reehi.board.like.service.response.ArticleLikeResponse
 @Service
 class ArticleLikeService (
     val articleLikeRepository: ArticleLikeRepository,
-    val articleLikeCountRepository: ArticleLikeCountRepository
+    val articleLikeCountRepository: ArticleLikeCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher
 ){
     val snowflake: Snowflake = Snowflake()
 
@@ -28,7 +33,7 @@ class ArticleLikeService (
      */
     @Transactional
     fun likePessimisticLock1(articleId: Long, userId: Long) {
-        articleLikeRepository.save(
+        val articleLike = articleLikeRepository.save(
             ArticleLike.create(
                 snowflake.nextId(),
                 articleId,
@@ -44,6 +49,19 @@ class ArticleLikeService (
                 ArticleLikeCount.init(articleId,1L)
             )
         }
+
+        outboxEventPublisher.publish(
+            EventType.ARTICLE_LIKED,
+            ArticleLikedEventPayload(
+                articleLikeId = articleLike.articleLikeId,
+                articleId = articleLike.articleId,
+                userId = articleLike.userId,
+                createdAt = articleLike.createdAt,
+                articleLikeCount = count(articleLike.articleId)
+            ),
+            articleLike.articleId
+
+        )
     }
 
     @Transactional
@@ -52,7 +70,20 @@ class ArticleLikeService (
             ?.let {
                 articleLikeRepository.delete(it)
                 articleLikeCountRepository.decrease(articleId)
+                outboxEventPublisher.publish(
+                    EventType.ARTICLE_UNLIKED,
+                    ArticleUnlikedEventPayload(
+                        articleLikeId = it.articleLikeId,
+                        articleId = it.articleId,
+                        userId = it.userId,
+                        createdAt = it.createdAt,
+                        articleLikeCount = count(it.articleId)
+                    ),
+                    it.articleId
+
+                )
             }
+
     }
 
     /**

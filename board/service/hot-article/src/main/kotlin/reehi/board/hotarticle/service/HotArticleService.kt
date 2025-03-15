@@ -19,16 +19,16 @@ class HotArticleService (
 ){
 
     fun handleEvent(event: Event<EventPayload>) {
-        val eventHandler: EventHandler<EventPayload> = findEventHandler(event)
+        val eventHandler: EventHandler<EventPayload>? = findEventHandler(event)
 
         if (isArticleCreatedOrDeleted(event)) {
-            eventHandler.handle(event)
+            eventHandler?.handle(event)
         } else {
             hotArticleScoreUpdater.update(event, eventHandler)
         }
     }
 
-    private fun findEventHandler(event: Event<EventPayload>): EventHandler<EventPayload> {
+    private fun findEventHandler(event: Event<EventPayload>): EventHandler<EventPayload>? {
         return eventHandlers.stream()
             .filter { eventHandler: EventHandler<EventPayload> -> eventHandler.supports(event) }
             .findAny()

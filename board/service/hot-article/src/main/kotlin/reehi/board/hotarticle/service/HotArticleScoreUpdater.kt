@@ -22,8 +22,8 @@ class HotArticleScoreUpdater (
         val HOT_ARTICLE_TTL: Duration = Duration.ofDays(10)
 
     }
-    fun update(event: Event<EventPayload>, eventHandler: EventHandler<EventPayload>) {
-        val articleId: Long = eventHandler.findArticleId(event)
+    fun update(event: Event<EventPayload>, eventHandler: EventHandler<EventPayload>?) {
+        val articleId: Long = eventHandler?.findArticleId(event) ?: return
         val createdTime = articleCreatedTimeRepository.read(articleId)
 
         if (!isArticleCreatedToday(createdTime)) {

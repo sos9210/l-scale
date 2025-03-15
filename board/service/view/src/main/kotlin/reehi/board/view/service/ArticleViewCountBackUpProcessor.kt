@@ -1,16 +1,18 @@
 package reehi.board.view.service
 
-import org.hibernate.event.spi.EventType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import reehi.board.common.event.EventType
+import reehi.board.common.event.payload.ArticleViewedEventPayload
+import reehi.board.common.outboxmessagerelay.OutboxEventPublisher
 import reehi.board.view.entity.ArticleViewCount
 import reehi.board.view.repository.ArticleViewCountBackUpRepository
 
 
 @Component
 class ArticleViewCountBackUpProcessor (
-  //  val outboxEventPublisher: OutboxEventPublisher,
+    val outboxEventPublisher: OutboxEventPublisher,
     val articleViewCountBackUpRepository: ArticleViewCountBackUpRepository
 ){
 
@@ -23,13 +25,14 @@ class ArticleViewCountBackUpProcessor (
 
         }
 
-//        outboxEventPublisher.publish(
-//            EventType.ARTICLE_VIEWED,
-//            ArticleViewedEventPayload.builder()
-//                .articleId(articleId)
-//                .articleViewCount(viewCount)
-//                .build(),
-//            articleId
-//        )
+        outboxEventPublisher.publish(
+            EventType.ARTICLE_VIEWED,
+            ArticleViewedEventPayload(
+                articleId = articleId,
+                articleViewCount = viewCount,
+
+            ),
+            articleId
+        )
     }
 }
